@@ -15,7 +15,8 @@ class Server
     protected $initialized_on = false;
     protected $uptime;
     protected $loadAverage;
-    protected $memoryUsage;
+    protected $memory;
+    protected $process;
 
     /**
      * Constructor
@@ -44,10 +45,16 @@ class Server
         $this->loadAverage = array(
             '1' => false, '5' => false, '15' => false,
         );
-        $this->memoryUsage = array(
+        $this->memory = array(
             'free' => false, 'used' => false,
-            'total' => false, 'percenage' => false,
+            'total' => false, '%' => false,
         );
+        $this->process = array();
+        $this->devicesUsage = array();
+        $this->diskUsage = array(
+            'free' => false, 'used' => false,
+            'total' => false, '%' => false,
+        );        
 
         $methods = get_class_methods(__CLASS__);
         foreach ($methods as $method) {
@@ -103,14 +110,14 @@ class Server
         $memoryUsage = explode('/', $this->exec($cmd));
         if (is_array($memoryUsage)) {
             if (count($memoryUsage)) {
-                $this->memoryUsage = array(
+                $this->memory = array(
                     'used' => trim($memoryUsage[0]),
                     'free' => trim($memoryUsage[1]),
                 );
-                $this->memoryUsage['total'] = $this->memoryUsage['used'] + $this->memoryUsage['free'];
-                if ($this->memoryUsage['total']){
-                    $this->memoryUsage['percentage'] = $this->memoryUsage['used'] / $this->memoryUsage['total'] * 100;
-                }                
+                $this->memory['total'] = $this->memory['used'] + $this->memory['free'];
+                if ($this->memory['total']) {
+                    $this->memory['%'] = $this->memory['used'] / $this->memory['total'] * 100;
+                }
             }
         }
     }
@@ -118,15 +125,52 @@ class Server
     /**
      * 
      */
-    protected function setCPUUsage()
+    protected function setDiskUsage()
     {
-        
+        $cmd = 'df | grep /dev/ | awk \'{print $1 "," $3 "," $4 "|"}\'';
+        $_diskUsage = explode('|', $this->exec($cmd));
+        if (is_array($_diskUsage)) {
+            if (count($_diskUsage)) {
+                foreach ($_diskUsage as $_devicesUsage) {
+                    $_devicesUsage = explode(',', $this->exec($cmd));
+                    if (is_array($_devicesUsage)) {
+                        if (count($_devicesUsage)) {
+                            $_deviceName = trim($_devicesUsage[0]);
+                            $this->devicesUsage[$_deviceName]['used'] = trim($_devicesUsage[1]);
+                            $this->devicesUsage[$_deviceName]['free'] = trim($_devicesUsage[2]);
+                            $this->devicesUsage[$_deviceName]['total'] = $this->devicesUsage[$_deviceName]['used'] + $this->devicesUsage[$_deviceName]['free'];
+                            if ($this->devicesUsage[$_deviceName]['total']) {
+                                $this->devicesUsage[$_deviceName]['%'] = $this->devicesUsage[$_deviceName]['used'] / $this->devicesUsage[$_deviceName]['total'] * 100;
+                            }
+                        }
+                    }
+                }
+                foreach ($this->devicesUsage as $_devicesUsage) {
+                    $this->diskUsage['used'] += $_devicesUsage['used'];
+                    $this->diskUsage['free'] += $_devicesUsage['free'];
+                }
+                $this->diskUsage['total'] = $this->diskUsage['used'] + $this->diskUsage['free'];
+                if ($this->diskUsage['total']) {
+                    $this->diskUsage['%'] = $this->diskUsage['used'] / $this->diskUsage['total'] * 100;
+                }
+            }
+        }
     }
 
     /**
      * 
      */
-    protected function setDiskUsage()
+    public function setProcess()
+    {
+        // ps aux | sort -nrk +3 | head -10
+        $cmd = 'ps auxh | wc -l';
+        $this->process['total'] = $this->exec($cmd);
+    }
+
+    /**
+     * 
+     */
+    protected function setCPUUsage()
     {
         
     }
