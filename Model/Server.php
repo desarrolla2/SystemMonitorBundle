@@ -12,16 +12,27 @@
 class Server
 {
 
-    protected $uptime = false;
-    protected $loadAverage = false;
-    protected $memoryUsage = false;
+    protected $initialized_on = false;
+    protected $uptime;
+    protected $loadAverage;
+    protected $memoryUsage;
 
     /**
      * Constructor
      */
     public function __construct()
     {
+        $start_time = $this->getMicroTime();
         $this->initialize();
+        $this->initialized_on = $this->getMicroTime() - $start_time;
+    }
+
+    /**
+     * @return float
+     */
+    protected function getMicroTime()
+    {
+        return microtime(true);
     }
 
     /**
@@ -29,6 +40,15 @@ class Server
      */
     protected function initialize()
     {
+        $this->uptime = false;
+        $this->loadAverage = array(
+            '1' => false, '5' => false, '15' => false,
+        );
+        $this->memoryUsage = array(
+            'free' => false, 'used' => false,
+            'total' => false, 'percenage' => false,
+        );
+
         $methods = get_class_methods(__CLASS__);
         foreach ($methods as $method) {
             if (strtolower(substr($method, 0, 3)) == 'set') {
@@ -87,15 +107,32 @@ class Server
                     'used' => trim($memoryUsage[0]),
                     'free' => trim($memoryUsage[1]),
                 );
+                $this->memoryUsage['total'] = $this->memoryUsage['used'] + $this->memoryUsage['free'];
+                if ($this->memoryUsage['total']){
+                    $this->memoryUsage['percentage'] = $this->memoryUsage['used'] / $this->memoryUsage['total'] * 100;
+                }                
             }
         }
     }
 
-    // CPU
-    // uso de disco
-    // procesos
-    // numero y mapa
+    /**
+     * 
+     */
+    protected function setCPUUsage()
+    {
+        
+    }
+
+    /**
+     * 
+     */
+    protected function setDiskUsage()
+    {
+        
+    }
+
     // servicios levantados
 }
+
 $s = new Server();
 var_dump($s);
