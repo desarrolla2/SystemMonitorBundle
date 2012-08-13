@@ -1,7 +1,7 @@
 {
-    "name": "desarrolla2/rss-client-bundle",
+    "name": "desarrolla2/system-monitor-bundle",
     "type": "symfony-bundle",
-    "description": "This Bundle provides a way to get rss feeds friendly.",
+    "description": "This Bundle provides a way to monitor your system friendly.",
     "keywords": ["rss", "client"],
     "license": "MIT",
     "minimum-stability": "dev",
@@ -17,8 +17,8 @@
     },
     "autoload": {
         "psr-0": {
-            "Desarrolla2\\Bundle\\RSSClientBundle": ""
+            "Desarrolla2\\Bundle\\SystemMonitorBundle": ""
         }
     },
-    "target-dir": "Desarrolla2/Bundle/RSSClientBundle"
+    "target-dir": "Desarrolla2/Bundle/SystemMonitorBundle"
 }
